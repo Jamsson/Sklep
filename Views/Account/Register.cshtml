@@ -1,0 +1,45 @@
+﻿@model ShopWebApp.AccountModel
+@{
+    Layout = "_Layout";
+}
+<br />
+<h2 style="text-align:center">Зарегистрироваться</h2>
+<br />
+<span class="text-danger">@Model.Message</span>
+<br />
+<form controller="Account" action="Register" method="post">
+    <div class="row">
+        <div class="col">
+            <label for="User.Name" asp-for="@Model.User.Name">Имя*</label>
+            <input type="text" name="User.Name" class="form-control" asp-for="@Model.User.Name"  pattern=".{2,64}" required>
+        </div>
+        <div class="col">
+            <label for="User.Surname" asp-for="@Model.User.Surname">Фамилия*</label>
+            <input type="text" name="User.Surname" asp-for="@Model.User.Surname" pattern=".{3,64}" class="form-control" required>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="User.Email" asp-for="@Model.User.Email">Адреса электронной почты*</label>
+        <input type="email" class="form-control" asp-for="@Model.User.Email" name="User.Email" pattern=".{5,128}" required>
+    </div>
+    Пароль* (минимум 8 символов)
+    <div class="row">
+        <div class="col">
+            <input type="password" name="Password" asp-for="@Model.Password" pattern=".{8,128}"  class="form-control" placeholder="Пароль" required>
+        </div>
+        <div class="col">
+            <input type="password" name="Password2" asp-for="@Model.Password2" pattern=".{8,128}"  class="form-control" placeholder="Повторите пароль" required>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="User.Address" asp-for="@Model.User.Address">Адрес</label>
+        <input type="text" class="form-control" name="User.Address" asp-for="@Model.User.Address" placeholder="Улица, Почтовый Индекс, Город" pattern=".{5,256}">
+    </div>
+    <div class="form-group">
+        <label for="User.Phone" asp-for="@Model.User.Phone">Номер телефона</label>
+        <input type="text" class="form-control" name="User.Phone" asp-for="@Model.User.Phone" pattern=".{7,16}">
+        <span class="text-info" style="font-size: small">* - обязательные поля</span>
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg btn-block">Зарегистрироваться</button>
+</form>
+<a href="@Url.Action("login", "account")" class="btn btn-outline-primary btn-lg btn-block" style="margin-top: 7px">У вас уже есть аккаунт? Авторизоваться</a>

@@ -1,0 +1,102 @@
+﻿@using ShopWebApp
+@using Microsoft.AspNetCore.Http;
+@model AdminModel
+@{
+    Layout = "_AdminLayout";
+}
+
+@section modal
+{
+    <div class="modal fade" id="staticBackdrop" data-backdrop="modal" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Подтвердить удаление</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <form action="@Context.Request.Path/remove" method="post" class="form-group">
+                    <div class="modal-body">
+                        Вы уверены, что хотите удалить этот объект вместе со всеми его унаследованными объектами?
+                        <p class="text-muted" style="font-size: smaller">Подтвердить операцию паролем</p>
+                        <input type="password" class="form-control" name="password" placeholder="Пароль" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-warning" data-dismiss="modal">Отмена</button>
+                        <button type="submit" class="btn btn-danger">Да</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<br />
+<h2 style="text-align:center">@ViewData["Name"] - @ViewData["ObjectName"]</h2>
+<br />
+<table class="table">
+    <tbody>
+        @{
+            string type = ViewData["type"].ToString();
+            foreach (KeyValuePair<string, string> kvp in Model.Dict)
+            {
+                @:<tr>
+                    @:<th>
+                        @kvp.Key
+                    @:</th>
+                    @:<td>
+                        @kvp.Value
+                    @:</td>
+                @:</tr>
+            }
+        }
+    </tbody>
+</table>
+@if (Functions.PermissionLevel(Model.User.Role) >= 4 && (type == "categories" || type == "subcategories" || type == "products") || Functions.PermissionLevel(Model.User.Role) >= 5 && (type == "users" || type == "orders"))
+{
+    <a href="" id="removebutton" class="btn btn-outline-danger btn-block" data-toggle="modal" data-target="#staticBackdrop">
+        Удалить объект <i class="bi-dash-circle-fill"></i>
+    </a>
+}
+@if (Functions.PermissionLevel(Model.User.Role) >= ViewBag.PermissionLevelToEdit)
+{
+    <a href="/admin/@Model.Tablename/@ViewBag.Id/edit" class="btn btn-primary btn-lg btn-block" style="margin-top: 7px">Редактировать @ViewData["ObjectName"]</a>
+}
+@{ 
+    string path = Url.Action("Таблица", "Admin") + "/" + Model.Tablename;
+}
+<a href="@path" class="btn btn-outline-primary btn-lg btn-block" style="margin-top: 7px">Список записей таблицы @Model.Tablename</a>
+@if (ViewBag.ChildObjects != null && ViewBag.ChildObjects.Count > 0)
+{
+    var childObjects = ViewBag.ChildObjects;
+    @:<h4>Унаследованные объекты</h4>
+    <table class="table">
+        <tbody>
+            @{
+                foreach (var child in childObjects)
+                {
+                    string id = "";
+                    if (type == "users")
+                        id = child.UserId;
+                    else if (type == "categories" || type == "subcategories" || type == "products" || type == "orders")
+                        id = child.Code;
+                    @:<tr>
+                        @:<td>
+                            <a href="/admin/@ViewData["childtype"]/@id">
+                                @if (child.Name != null)
+                                {
+                                    @child.Name
+                                }
+                                else
+                                {
+                                    @:Объект без имени
+                                }
+                            </a>
+                        @:</td>
+                    @:</tr>
+                }
+            }
+        </tbody>
+    </table>
+}

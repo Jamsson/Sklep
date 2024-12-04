@@ -1,0 +1,71 @@
+﻿@using ShopWebApp
+@{
+    Layout = "_Layout";
+}
+<br />
+<h2 style="text-align:center" class="display-4">Аккаунт</h2>
+<br />
+<table class="table">
+    <tbody>
+        <tr>
+            <th scope="row">Имя</th>
+            <td>@Model.User.Name</td>
+        </tr>
+        <tr>
+            <th scope="row">Фамилия</th>
+            <td>@Model.User.Surname</td>
+        </tr>
+        <tr>
+            <th scope="row">Адреса электронной почты</th>
+            <td>@Model.User.Email</td>
+        </tr>
+        <tr>
+            <th scope="row">Номер телефона</th>
+            <td>@Model.User.Phone</td>
+        </tr>
+        <tr>
+            <th scope="row">Домашний адрес</th>
+            <td>@Model.User.Address</td>
+        </tr>
+    </tbody>
+</table>
+<a href="@Url.Action("edit", "account")" class="btn btn-outline-primary btn-lg btn-block">Изменить данные учетной записи</a>
+@if (ViewBag.orders.Count > 0)
+{
+    <script>
+        function goToOrder(code) {
+            window.location.href = '/order/' + code;
+        }
+    </script>
+    <table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Код заказа</th>
+            <th scope="col">Статус</th>
+            <th scope="col">Сумма</th>
+            <th scope="col">Количество продуктов</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (Order order in ViewBag.orders)
+        {
+            int productsCount = 0;
+            foreach (ProductOrder po in order.ProductOrders)
+                productsCount += po.Count;
+        <tr class="pointer" onclick="goToOrder(@order.Code)">
+            <th>@order.Code</th>
+            <td>@Functions.Status(order.Status)</td>
+            <td>@((order.Amount/100).ToString("C")) - @if (order.Paid)
+            {
+                @:Оплачено
+            }
+            else
+            {
+                @:Неоплачено
+            }</td>
+            <td>@productsCount</td>
+        </tr>
+        }
+    </tbody>
+    </table>
+}

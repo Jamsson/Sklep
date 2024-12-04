@@ -1,0 +1,81 @@
+﻿@using ShopWebApp
+@{ 
+    Layout = "_AdminLayout";
+}
+<br />
+<h1>Редактировать @ViewData["Name"]</h1>
+<br />
+
+<form class="form-group" action="/admin/@ViewData["table"]/@ViewData["Id"]/edit" method="post">
+    @foreach (KeyValuePair<string, string> kvp in ViewBag.values)
+    {
+        <label for="@kvp.Key">@kvp.Key</label>
+        @if (kvp.Key.ToLower().Contains("long"))
+        {
+            <textarea class="form-control" name="@kvp.Key" rows="5">@kvp.Value</textarea>
+        }
+        else if (kvp.Key == "CategoryId")
+        {
+            <div class="form-group">
+                <select class="form-control" name="@kvp.Key">
+                    @using (var db = new ShopDatabase())
+                    {
+                        foreach (Category category in db.Categories)
+                        {
+                            <option value="@category.CategoryId" @if (kvp.Value == category.CategoryId.ToString()) { @: selected
+                                      }>
+                                @category.Name
+                                </option>
+                            }
+                        }
+                </select>
+            </div>
+        }
+        else if (kvp.Key == "SubcategoryId")
+        {
+            <div class="form-group">
+                <select class="form-control" name="@kvp.Key">
+                    @using (var db = new ShopDatabase())
+                    {
+                        foreach (Subcategory subcategory in db.Subcategories)
+                        {
+                            <option value="@subcategory.SubcategoryId" @if (kvp.Value == subcategory.SubcategoryId.ToString()) { @: selected
+                                      }>
+                                @subcategory.Name
+                            </option>
+                            }
+                        }
+                </select>
+            </div>
+        }
+        else if(kvp.Key == "Status" && ViewData["table"].ToString() == "orders") 
+        { 
+            <div class="form-group">
+                <select class="form-control" name="@kvp.Key">
+                    @for(int i = 0; i <= 5; i++)
+                    {
+                        <option value="@i" @if(kvp.Value == i.ToString()) { @: selected
+                                }>
+                            @Functions.Status(i)
+                        </option>
+                    }
+                </select>
+            </div>
+        }
+        // Needs to be finished!
+        else if(kvp.Key == "Enabled" || (kvp.Key == "Paid" && ViewData["table"].ToString() == "orders"))
+                {
+            <div class="form-check">
+                <input type="checkbox" value="1" name="@kvp.Key" @if(kvp.Value == "True")
+                    {
+                        @:checked
+                    } />
+            </div>
+                }
+        else
+        {
+            <input type="text" name="@kvp.Key" value="@kvp.Value" class="form-control" />
+        }
+    }
+    <button type="submit" class="btn btn-primary btn-lg btn-block" style="margin-top: 7px">Сохраните изменения</button>
+</form>

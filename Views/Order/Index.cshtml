@@ -1,0 +1,144 @@
+﻿@using Microsoft.AspNetCore.Http;
+@using ShopWebApp
+@model OrderModel
+@{
+    Layout = "_OrderLayout";
+}
+<script>
+    function OnShippingUpdate() {
+        if (document.getElementById('ShippingType').value == "2") {
+            document.getElementById('info').style.display = "block";
+        }
+        else {
+            document.getElementById('info').style.display = "none";
+        }
+    }
+</script>
+@section top {
+    <div class="jumbotron">
+        <h1 class="display-3 text-center">Заказ</h1>
+    </div>
+}
+
+@if (Model.Cart.Count < 1)
+{
+    <h2 class="text-info">Корзина пуста</h2>
+    <br />
+    <a href="@Url.Action("cart", "shop")" class="btn btn-outline-primary btn-block btn-lg margin-mobile">Вернуться в магазин</a>
+}
+else
+{
+    @if (Context.User.Identity.IsAuthenticated)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            Вы вошли в систему как @Model.User.Name @Model.User.Surname! Ваш заказ будет сохранен в вашем аккаунте.
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    else
+    {
+
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <a href="@Url.Action("login", "account")?ReturnUrl=/order" class="nounderline text-dark">
+                Войдите, чтобы сохранить заказ в своей учетной записи.
+            </a>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+    @if (Model.Message != null && Model.Message != string.Empty)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span style="white-space: pre-line">@Model.Message</span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+<form method="post" id="orderForm">
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="ClientName">Имя</label>
+            <input type="text" class="form-control" name="Order.ClientName" id="ClientName" asp-for="@Model.Order.ClientName" value="@Model.Order.ClientName" pattern=".{3,64}" required>
+        </div>
+        <div class="form-group col-md-6">
+            <label for="ClientSurname">Фамилия</label>
+            <input type="text" class="form-control" name="Order.ClientSurname" id="ClientSurname" asp-for="@Model.Order.ClientSurname" value="@Model.Order.ClientSurname" pattern=".{3,64}" required>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="Email">Адрес электронной почты</label>
+            <input type="email" class="form-control" name="Order.ClientEmail" id="Email" asp-for="@Model.Order.ClientEmail" value="@Model.Order.ClientEmail" pattern=".{5,128}" required>
+        </div>
+        <div class="form-group col-md-6">
+            <label for="Phone">Номер телефона</label>
+            <input type="text" class="form-control" name="Order.ClientPhone" id="Phone" asp-for="@Model.Order.ClientPhone" value="@Model.Order.ClientPhone" pattern=".{7,16}" required>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="Address">Адрес</label>
+        <input type="text" class="form-control" name="Order.Address" id="Address" asp-for="@Model.Order.Address" value="@Model.Order.Address" pattern=".{,256}">
+    </div>
+    <div class="row form-group">
+        <div class="col-6">
+            <select class="custom-select" onchange="OnShippingUpdate()" name="Order.ShippingType" id="ShippingType" asp-for="@Model.Order.ShippingType">
+                <option @if (Model.Order.ShippingType == 0) { @: selected
+                        }>
+                    Доставка
+                </option>
+                <option value="1" @if (Model.Order.ShippingType == 1) { @: selected
+                        }>
+                    Курьер (+20 руб)
+                </option>
+                <option value="2" @if (Model.Order.ShippingType == 2) { @: selected
+                        }>
+                    Почта (+15 руб)
+                </option>
+                <option value="3" @if (Model.Order.ShippingType == 3) { @: selected
+                        }>
+                    Самовывоз
+                </option>
+            </select>
+        </div>
+        <div class="col-6">
+            <select class="custom-select" name="Order.PaymentMethod" id="PaymentMethod" asp-for="@Model.Order.PaymentMethod">
+                <option @if (Model.Order.PaymentMethod == 0) { @: selected
+                        }>
+                    Способ оплаты
+                </option>
+                <option value="1" @if (Model.Order.PaymentMethod == 1) { @: selected
+                        }>
+                    Перевод
+                </option>
+                <option value="2" @if (Model.Order.PaymentMethod == 2) { @: selected
+                        }>
+                    Оплата при доставке
+                </option>
+                <option value="3" @if (Model.Order.PaymentMethod == 3) { @: selected
+                        }>
+                    Картой
+                </option>
+            </select>
+        </div>
+    </div>
+    <div class="form-group" id="info" style="display: none">
+        <input type="text" class="form-control" name="Order.ShippingInfo" id="ShippingInfo" asp-for="@Model.Order.ShippingInfo" value="@Model.Order.ShippingInfo" placeholder="Код для почты" pattern=".{,64}" />
+    </div>
+    <div class="form-group">
+        <input type="text" class="form-control" name="Order.Comments" id="Comments" asp-for="@Model.Order.Comments" value="@Model.Order.Comments" placeholder="Примечания к заказу" pattern=".{,2048}" />
+    </div>
+
+    <div class="row" style="margin-top: 30px">
+        <div class="col-sm-4">
+            <a href="@Url.Action("cart", "shop")" class="btn btn-outline-primary btn-block btn-lg margin-mobile">Вернуться в корзину</a>
+        </div>
+        <div class="col-sm-8">
+            <button type="submit" class="btn btn-success btn-block btn-lg margin-mobile">Заказать продукцию</button>
+        </div>
+    </div>
+</form>
+}

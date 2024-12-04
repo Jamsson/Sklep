@@ -1,0 +1,150 @@
+﻿@using ShopWebApp
+@using Microsoft.AspNetCore.Http;
+@using Newtonsoft.Json;
+@using Newtonsoft.Json.Serialization;
+@model BaseViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>@Model.Title</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
+    <link href="~/css/style.css" rel="stylesheet" />
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="~/js/javascript.js"></script>
+</head>
+
+<body onload="onStart()">
+    <nav class="navbar navbar-expand-md bg-dark navbar-dark fixed-top">
+        <a class="navbar-brand" href="@Url.Action("index", "home")">
+            Sklep
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav mr-auto">
+                @{
+                    using (var db = new ShopDatabase())
+                    {
+                        List<Category> categories = (from c in db.Categories
+                                                     where c.Enabled
+                                                     select c).ToList();
+                        foreach (Category cat in categories)
+                        {
+                            @:<li class="nav-item dropdown">
+                            @:<a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                            @cat.Name
+                            @:</a>
+                            db.Entry(cat)
+                            .Collection(c => c.Subcategories)
+                            .Load();
+                            var subcategories = cat.Subcategories.Where(s => s.Enabled).ToList();
+                            @:<div class="dropdown-menu fadein">
+                            @:<a class="dropdown-item font-weight-bold" href="/s/@cat.Code">Все</a>
+                            @:<div class="dropdown-divider"></div>
+                            foreach (Subcategory subcat in subcategories)
+                            {
+                                @:<a class="dropdown-item" href="/s/@cat.Code/@subcat.Code">@subcat.Name</a>
+                            }
+                            @:</div>
+                            @:</li>
+                        }
+                    }
+                    int itemsInCart = 0;
+                    if (!string.IsNullOrEmpty(Context.Session.GetString("_Cart")))
+                    {
+                        foreach (KeyValuePair<string, int> kvp in JsonConvert.DeserializeObject<Dictionary<string,
+                        int>>(Context.Session.GetString("_Cart"))) { itemsInCart += kvp.Value; };
+                    }
+                }
+            </ul>
+            <ul class="navbar-nav justify-content-right">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                        Поиск <i class="bi-search text-light" style="margin-left:2px"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right fadein">
+                        <form class="px-2 py-1" action="/search" method="get">
+                            <div class="form-group">
+                                <input type="search" class="form-control" name="name" placeholder="Поиск..." required>
+                            </div>
+                            <button type="submit" class="btn btn-sm btn-block btn-outline-success">Поиск <i
+                                    class="bi-search"></i> </button>
+                        </form>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                        Аккаунт <i class="bi-person-circle text-light" style="margin-left:2px"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-menu-right fadein">
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <a class="dropdown-item" href="@Url.Action("index", "account")">@Model.User.Name
+                                @Model.User.Surname</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="@Url.Action("logout", "account")">Выйти</a>
+                        }
+                        else
+                        {
+                            <a class="dropdown-item" href="@Url.Action("login", "account")">Авторизоваться</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="@Url.Action("register", "account")">Зарегистрироваться</a>
+                        }
+                    </div>
+                </li>
+                <li class="nav-item mr-1">
+                    <a class="nav-link" href="/cart" id="cartbutton">Корзина @if (itemsInCart > 0)
+                        {
+                            @:(@itemsInCart.ToString())
+                        } <i class="bi-cart  text-light" style="margin-left:2px"></i></a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    @RenderSection("top", false)
+    <div class="container-fluid fadein" style="padding-top:65px; padding-left: 5vw; padding-right: 5vw">
+        @RenderSection("fluid", false)
+        <div class="row">
+            <div class="col-md-2 order-md-1">
+                @RenderSection("left", false)
+            </div>
+            <div class="col-md-2 order-md-12">
+                @RenderSection("right", false)
+            </div>
+            <div class="col-md-8 order-md-6">
+                @RenderBody()
+            </div>
+        </div>
+    </div>
+    <div style="margin-top:50px"></div>
+    <div class="navbar fixed-bottom bg-light navbar-light" style="margin-top:15px">
+        Sklep
+        <div class="float-left" id="cookieInfo">
+            Этот сайт использует файлы cookie. Продолжая использовать сайт, вы соглашаетесь с их использованием.
+            <button type="button" class="btn btn-sm btn-outline-success" onclick="hideCookies()"
+                style="margin-left: 10px">OK</button>
+        </div>
+        @if (User.Identity.IsAuthenticated)
+        {
+            var user = DbFunctions.FindUserByEmail(Model.User.Email);
+            if (user != null && Functions.PermissionLevel(user.Role) >= 2)
+            {
+                @:<a class="btn btn-sm btn-outline-success float-left" href="@Url.Action("index", "admin")">Панель</a>
+            }
+        }
+    </div>
+</body>
+@RenderSection("modal", false)
+
+</html>

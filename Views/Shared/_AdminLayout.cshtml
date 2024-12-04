@@ -1,0 +1,116 @@
+﻿@using ShopWebApp
+@model BaseViewModel
+@{
+    string rootPath = Url.Action("table", "admin");
+    string ordersPath = rootPath + "/orders/";
+    string customOrdersPath = rootPath + "/customOrders/";
+    string usersPath = rootPath + "/users/";
+    string productsPath = rootPath + "/products/";
+    string subcategoriesPath = rootPath + "/subcategories/";
+    string categoriesPath = rootPath + "/categories/";
+    string photosPath = "/admin/photos/";
+}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>@Model.Title</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
+    <link href="~/css/style.css" rel="stylesheet" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="~/js/javascript.js"></script>
+</head>
+
+<body onload="onStart()">
+    <nav class="navbar navbar-expand-md bg-dark navbar-dark fixed-top">
+        <!-- Brand -->
+        <a class="navbar-brand" href="@Url.Action("index", "admin")">Админ</a>
+
+        <!-- Toggler/collapsibe Button -->
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- Navbar links -->
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                        Обслуживание клиентов
+                    </a>
+                    <div class="dropdown-menu fadein">
+                        <a href="@ordersPath" class="dropdown-item">Заказы</a>
+                        <a href="@customOrdersPath" class="dropdown-item">Индивидуальные заказы</a>
+                        @if (Functions.PermissionLevel(Model.User.Role) >= 3)
+                        {
+                            <a href="@usersPath" class="dropdown-item">Пользователь</a>
+                        }
+                    </div>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                        Структура магазина
+                    </a>
+                    <div class="dropdown-menu fadein">
+                        <a href="@productsPath" class="dropdown-item">Продукты</a>
+                        <a href="@subcategoriesPath" class="dropdown-item">Подкатегории</a>
+                        <a href="@categoriesPath" class="dropdown-item">Категория</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbardrop" data-toggle="dropdown">
+                        Ресурсы
+                    </a>
+                    <div class="dropdown-menu fadein">
+                        <a href="@photosPath" class="dropdown-item">Фотографии</a>
+                    </div>
+                </li>
+            </ul>
+            <form class="form-inline my-2 my-lg-0 mr-1" action="/admin/search" method="get">
+                <input class="form-control mr-sm-2 bg-dark text-white" type="search" placeholder="Поиск..." name="name"
+                    required>
+                <button class="btn btn-outline-success my-2 my-sm-0" type="submit"><i class="bi-search"></i></button>
+            </form>
+            <ul class="navbar-nav justify-content-right">
+                <li class="nav-item mr-1">
+                    <a class="nav-link text-light" href="@Url.Action("index", "home")">Sklep</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    @RenderSection("top", false);
+    <div class="container-fluid" style="padding-top:65px">
+        @RenderSection("fluid", false)
+        <div class="row">
+            <div class="col-sm-2 order-md-1">
+                @RenderSection("left", false)
+            </div>
+            <div class="col-sm-2 order-md-12">
+                @RenderSection("right", false)
+            </div>
+            <div class="col-sm-8 fadein order-md-6">
+                @RenderBody()
+            </div>
+
+        </div>
+    </div>
+    <div style="margin-top:50px"></div>
+    <div class="navbar fixed-bottom bg-light navbar-light" style="margin-top:15px">
+        Sklep - Админ
+        <a class="btn btn-sm btn-outline-success float-left" href="@Url.Action("index", "home")">Sklep</a>
+        <div class="float-left" id="cookieInfo">
+            Этот сайт использует файлы cookie. Продолжая использовать сайт, вы соглашаетесь на их использование..
+            <a href="#" class="btn btn-sm btn-outline-success" onclick="hideCookies()" style="margin-left: 10px">OK</a>
+        </div>
+    </div>
+</body>
+@RenderSection("modal", false)
+
+</html>

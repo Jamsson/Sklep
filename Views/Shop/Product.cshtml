@@ -1,0 +1,331 @@
+﻿@using ShopWebApp
+@using Microsoft.AspNetCore.Http
+
+@{
+    Layout = "_Layout";
+    Product product = ViewBag.Product;
+    double price = product.Price / 100.0, oldPrice = product.OldPrice / 100.0, discount = oldPrice == 0 ? 0 : Math.Round((oldPrice - price) / oldPrice, 2) * 100;
+    double rate = -1;
+    int stars = 0, halfStars = 0;
+    if (product.RatingVotes > 0)
+    {
+        rate = Math.Round(product.RatingSum / (double)product.RatingVotes, 2);
+        halfStars = Convert.ToInt32(rate / 0.5);
+        double rest = rate - halfStars * 0.5;
+        if (rest >= 0.5)
+            halfStars++;
+        stars = halfStars / 2;
+        if (halfStars % 2 == 1)
+            halfStars = 1;
+        else
+            halfStars = 0;
+    }
+    string[] photos = { };
+    string[] types = { };
+    Dictionary<string, string> tags = new Dictionary<string, string>();
+    if (product.OtherPhotos != "" && product.OtherPhotos != null)
+        photos = product.OtherPhotos.Split(';');
+    if (product.Types != "" && product.Types != null)
+        types = product.Types.Split(';');
+    if (product.Tags != "" && product.Tags != null)
+    {
+        string[] tagsTab = product.Tags.Split(';');
+        foreach (string s in tagsTab)
+        {
+            string[] oneTagTab = s.Split(':');
+            if (oneTagTab.Length >= 2)
+                tags.Add(oneTagTab[0], oneTagTab[1]);
+        }
+    }
+}
+
+@section top{
+    <div class="jumbotron jumbotron-fluid" style="margin-top: 5vh; margin-bottom: -30px">
+        <h1 class="text-center display-4 align-bottom">@product.Brand @product.Name</h1>
+    </div>
+}
+
+@section modal {
+    <div class="modal fade" id="staticBackdrop" data-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="staticBackdropLabel">Корзина</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h4>В корзину добавлен новый товар</h4>
+                    @product.Brand @product.Name
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-block btn-outline-success" data-dismiss="modal">Продолжить покупки</button>
+                    <a href="/cart" class="btn btn-block btn-success">Корзина</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@section left{
+    <div class="sticky-top flex-column d-none d-md-block btn-block" style="top: 65px">
+
+        @using (var db = new ShopDatabase())
+        {
+            Subcategory subcategory = db.Subcategories.Where(s => s.SubcategoryId == product.SubcategoryId).FirstOrDefault(); Category category = new Category();
+            if (subcategory != null)
+            {
+                category = db.Categories.Where(c => c.CategoryId == subcategory.CategoryId).FirstOrDefault();
+            }
+            if (subcategory != null && category != null)
+            {
+            <div class="list-group">
+                <a class="list-group-item btn btn-light btn-block" href="/s/@category.Code/@subcategory.Code">@subcategory.Name</a>
+                <a class="list-group-item btn btn-light btn-block" href="/s/@category.Code/">@category.Name</a>
+            </div>
+            }
+
+        }
+        <ul class="list-group" style="margin-top: 30px">
+            <li class="list-group-item btn btn-light btn-block" onclick="window.location.hash = '#about'">О продукте</li>
+            <li class="list-group-item btn btn-light btn-block" onclick="window.location.hash = '#rating'">Оценка</li>
+            <li class="list-group-item btn btn-light btn-block" onclick="window.location.hash = '#specs'">Характеристики</li>
+        </ul>
+    </div>
+}
+<style>
+    .ratings {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        direction: rtl;
+        text-align: left;
+    }
+
+    .star {
+        position: relative;
+        line-height: 60px;
+        display: inline-block;
+        transition: color 0.2s ease;
+        color: #ebebeb;
+    }
+
+        .star:before {
+            content: '\2605';
+            width: 60px;
+            height: 60px;
+            font-size: 60px;
+        }
+
+        .star:hover,
+        .star.selected,
+        .star:hover ~ .star,
+        .star.selected ~ .star {
+            transition: color 0.8s ease;
+            color: #ffcc00;
+        }
+</style>
+<script>
+    function addToCart() {
+        $.post("/cart/add/@product.Code");
+    }
+    function vote(stars) {
+        document.getElementById("thanks").innerHTML = "<p class=\"fadein\">Спасибо!</p>";
+        $.post("/review/@product.Code/" + stars);
+    }
+
+    $(function () {
+        var star = '.star',
+            selected = '.selected';
+
+        $(star).on('click', function () {
+            $(selected).each(function () {
+                $(this).removeClass('selected');
+            });
+            $(this).addClass('selected');
+        });
+
+    });
+</script>
+
+<div class="row d-flex">
+    <div class="col-xl-5">
+        @if (photos.Length < 1)
+        {
+            <img class="img-fluid" src="/images/@product.Photo" alt="@product.Code" />
+        }
+        else
+        {
+            <div id="carousel" class="carousel slide" data-ride="carousel">
+                <ol class="carousel-indicators">
+                    <li data-target="#carousel" data-slide-to="0" class="active"></li>
+                    @for (int i = 1; i <= photos.Length; i++)
+                    {
+                        <li data-target="#carousel" data-slide-to="@i"></li>
+                    }
+                </ol>
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <img class="d-block w-100" src="/images/@product.Photo" alt="@product.Photo">
+                    </div>
+                    @foreach (string photo in photos)
+                    {
+                        <div class="carousel-item">
+                            <img class="d-block w-100" src="/images/@photo" alt="@photo">
+                        </div>
+                    }
+                </div>
+                <a class="carousel-control-prev" href="#carousel" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Преведущая</span>
+                </a>
+                <a class="carousel-control-next" href="#carousel" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Следующая</span>
+                </a>
+            </div>
+        }
+    </div>
+    <div class="col-xl-7">
+        <table class="table h5">
+            <tbody>
+                <tr>
+                    <td class="text-secondary">Продукт</td>
+                    <th>@product.Name</th>
+                </tr>
+                <tr>
+                    <td class="text-secondary">Производитель</td>
+                    <th>@product.Brand</th>
+                </tr>
+                <tr>
+                    <td class="text-secondary">Цена</td>
+                    <th>
+                        @price.ToString("C")
+                        @if (product.OldPrice > product.Price)
+                        {
+                            <span class="ml-2" style="color: orangered; text-decoration: line-through; text-decoration-color: darkred">@oldPrice.ToString("C")</span><br /><span style="color: forestgreen">- @discount%</span>
+                        }
+                    </th>
+                </tr>
+                <tr>
+                    <td class="text-secondary">Доступный</td>
+                    @if (product.Stock == 0)
+                    {
+                        <th class="text-danger">Недоступный</th>
+                    }
+                    else if (product.Stock > 0)
+                    {
+                        <th>@product.Stock шт</th>
+                    }
+                    else
+                    {
+                        <th>В наличии</th>
+                    }
+                </tr>
+                <tr>
+                    <td class="text-secondary">Оценка</td>
+                    @if (rate == -1)
+                    {
+                        <td>Нет оценки</td>
+                    }
+                    else
+                    {
+                        <td class="text-warning">
+                            @for (int i = 0; i < stars; i++)
+                            {
+                                @:<i class="bi-star-fill"></i>
+                            }
+                            @if (halfStars == 1)
+                            {
+                                @:<i class="bi-star-half"></i>
+                            }
+                            @for (int i = stars + halfStars; i < 5; i++)
+                            {
+                                @:<i class="bi-star"></i>
+                            }
+                            (@product.RatingVotes)
+                        </td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if (product.Stock != 0)
+{
+    <a href="" class="btn btn-success btn-lg btn-block h4" data-toggle="modal" data-target="#staticBackdrop" onclick="addToCart()">Добавить в корзину <i class="bi-cart-plus-fill"></i></a>
+}
+else
+{
+    <a href="" class="btn btn-warning btn-lg btn-block" style="pointer-events: none;">Товар временно недоступен <i class=" bi-exclamation-triangle"></i></a>
+}
+@if (types.Length > 0)
+{
+    <div class="row">
+        @using (var db = new ShopDatabase())
+        {
+            foreach (string code in types)
+            {
+                Product prod;
+
+                prod = db.Products.Where(p => p.Code == code || p.ProductId.ToString() == code).FirstOrDefault();
+                if (prod == null)
+                    continue;
+                <div class="col-2">
+                    <a class="text-muted" href="/p/@code">@prod.Name</a>
+                    <a href="/p/@code"><span class="badge badge-primary badge-pill" style="background-color: green; align-content: center">@(((double)prod.Price / 100).ToString("C"))</span></a>
+                </div>
+            }
+        }
+    </div>
+}
+
+<br />
+<div id="about">
+    <hr />
+    @Html.Raw(product.LongAbout)
+    <hr />
+</div>
+
+
+@{
+    int? isReviewed = Context.Request.HttpContext.Session.GetInt32(product.Code);
+    if (isReviewed == null)
+        isReviewed = 0;
+}
+
+<div class="row" id="rating">
+    <p id="thanks" class="h4 text-info col-4 align-middle" style="line-height: 60px;">
+        @if (isReviewed != 0)
+        {
+            @:Спасибо!
+        }
+        else
+        {
+            @:Оцените продукт
+        }
+    </p>
+    <ul class="ratings col-8">
+        <li class="star" onclick="vote(5)"></li>
+        <li class="star" onclick="vote(4)"></li>
+        <li class="star" onclick="vote(3)"></li>
+        <li class="star" onclick="vote(2)"></li>
+        <li class="star" onclick="vote(1)"></li>
+    </ul>
+</div>
+<div id="specs">
+    <h4>Характеристики</h4>
+    <table class="table table-hover">
+        @foreach (KeyValuePair<string, string> tag in tags)
+        {
+            <tr>
+                <td class="text-muted">@tag.Key</td>
+                <td>@tag.Value</td>
+            </tr>
+        }
+    </table>
+</div>

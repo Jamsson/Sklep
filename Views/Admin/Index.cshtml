@@ -1,0 +1,62 @@
+﻿@using ShopWebApp
+@{
+    Layout = "_AdminLayout";
+}
+
+<br />
+<h2 style="text-align:center">Обслуживание клиентов</h2>
+<br />
+
+@{
+    string rootPath = Url.Action("table", "admin");
+    string ordersPath = rootPath + "/orders/";
+    string customOrdersPath = rootPath + "/customOrders/";
+    string usersPath = rootPath + "/users/";
+    string productsPath = rootPath + "/products/";
+    string subcategoriesPath = rootPath + "/subcategories/";
+    string categoriesPath = rootPath + "/categories/";
+    string photosPath = "admin/photos/";
+
+    int newOrders = 0;
+    using (var db = new ShopDatabase()) {
+        newOrders = db.Orders.Where(o => o.Status == 0).Count();
+    }
+}
+
+<ul class="list-group">
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <a href="@ordersPath" class="text-dark">Заказы</a>
+        @if (newOrders > 0)
+        {
+            <span class="badge badge-success badge-pill">@newOrders</span>
+        }
+    </li>
+    @if (Functions.PermissionLevel(Model.User.Role) >= 3)
+    {
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            <a href="@usersPath" class="text-info">Пользователи</a>
+        </li>
+    }
+</ul>
+<br />
+<h2 style="text-align:center">Структура магазина</h2>
+<br />
+<ul class="list-group">
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <a href="@productsPath" class="text-dark">Продукты</a>
+    </li>
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <a href="@subcategoriesPath" class="text-info">Подкатегории</a>
+    </li>
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <a href="@categoriesPath" class="text-info">Категория</a>
+    </li>
+</ul>
+<br />
+<h2 style="text-align:center">Ресурсы</h2>
+<br />
+<ul class="list-group">
+    <li class="list-group-item d-flex justify-content-between align-items-center">
+        <a href="@photosPath" class="text-info">Фотографии</a>
+    </li>
+</ul>
