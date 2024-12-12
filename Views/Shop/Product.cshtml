@@ -193,11 +193,11 @@
         <table class="table h5">
             <tbody>
                 <tr>
-                    <td class="text-secondary">Продукт</td>
+                    <td class="text-secondary">Производитель</td>
                     <th>@product.Name</th>
                 </tr>
                 <tr>
-                    <td class="text-secondary">Производитель</td>
+                    <td class="text-secondary">Продукт</td>
                     <th>@product.Brand</th>
                 </tr>
                 <tr>
@@ -211,10 +211,10 @@
                     </th>
                 </tr>
                 <tr>
-                    <td class="text-secondary">Доступный</td>
+                    <td class="text-secondary">Количество</td>
                     @if (product.Stock == 0)
                     {
-                        <th class="text-danger">Недоступный</th>
+                        <th class="text-danger">Недоступно</th>
                     }
                     else if (product.Stock > 0)
                     {
@@ -276,8 +276,8 @@ else
                 if (prod == null)
                     continue;
                 <div class="col-2">
-                    <a class="text-muted" href="/p/@code">@prod.Name</a>
-                    <a href="/p/@code"><span class="badge badge-primary badge-pill" style="background-color: green; align-content: center">@(((double)prod.Price / 100).ToString("C"))</span></a>
+                    <a class="text-muted" href="/p/@prod.Code">@prod.Name</a>
+                    <a href="/p/@prod.Code"><span class="badge badge-primary badge-pill" style="background-color: green; align-content: center">@(((double)prod.Price / 100).ToString("C"))</span></a>
                 </div>
             }
         }
